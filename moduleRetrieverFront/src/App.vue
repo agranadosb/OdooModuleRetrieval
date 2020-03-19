@@ -12,8 +12,17 @@
       <button v-if="!netShowed" @click="showNet" class="btn btn-primary">Show Net</button>
       <button v-if="netShowed" @click="hideNet" class="btn btn-primary">Hide Net</button>
     </div>
-    <div class="container" v-for="data in moduleList" style="margin-bottom:10px;padding:20px;">
-      <app-module :moduleOdoo="data" @searchModule="onSearchModule"></app-module>
+    <div id="accordion">
+      <div class="container" v-for="data in moduleList">
+        <div class="card-header" :id="'heading' + data['tecName']">
+          <button class="btn collapsed" data-toggle="collapse" :data-target="'#collapse' + data['tecName']" aria-expanded="true" :aria-controls="'collapse' + data['tecName']" style="width:100%;">
+            {{ data['tecName'] }}
+          </button>
+        </div>
+        <div :id="'collapse' + data['tecName']" class="collapse" :aria-labelledby="'heading' + data['tecName']" data-parent="#accordion">
+          <app-module :moduleOdoo="data" @searchModule="onSearchModule"></app-module>
+        </div>
+      </div>
     </div>
     <div class="col-12">
       <d3-network ref='net' :net-nodes="nodesSearchShow" :net-links="linksSearchShow" :options="options" style="width:100%;"/>
