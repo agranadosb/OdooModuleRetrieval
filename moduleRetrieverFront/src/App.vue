@@ -9,12 +9,14 @@
       <button @click="getModules" class="btn btn-primary">GetModules</button>
       <button v-if="!searchEquals" @click="searchEquals = true" class="btn btn-primary">Equals</button>
       <button v-if="searchEquals" @click="searchEquals = false" class="btn btn-primary">Similars</button>
+      <button v-if="!netShowed" @click="showNet" class="btn btn-primary">Show Net</button>
+      <button v-if="netShowed" @click="hideNet" class="btn btn-primary">Hide Net</button>
     </div>
-    <div class="container" v-for="data in moduleList.modules" style="margin-bottom:10px;padding:20px;">
+    <div class="container" v-for="data in moduleList" style="margin-bottom:10px;padding:20px;">
       <app-module :moduleOdoo="data" @searchModule="onSearchModule"></app-module>
     </div>
     <div class="col-12">
-      <d3-network ref='net' :net-nodes="moduleList.nodes" :net-links="moduleList.links" :options="options" style="width:100%;"/>
+      <d3-network ref='net' :net-nodes="nodesSearchShow" :net-links="linksSearchShow" :options="options" style="width:100%;"/>
     </div>
   </div>
 </template>
@@ -32,11 +34,52 @@ export default {
       searchEquals: false,
       nodes: [],
       links: [],
+      nodesSearch: [],
+      linksSearch: [],
+      nodesSearchShow: [],
+      linksSearchShow: [],
+      netShowed: false,
       nodeSize:20,
       canvas:false
     }
   },
   methods: {
+    showNet() {
+      let nodesList = []
+      let linksList = []
+
+      for (let i in this.links) {
+        if (this.searchEquals && (this.links[i]['sid'] === this.search || this.links[i]['tid'] === this.search)){
+          linksList.push(this.links[i])
+          if(!nodesList.some(e => e.id == this.links[i]['sid'])) {
+            nodesList.push({id: this.links[i]['sid'], name: this.links[i]['sid']})
+          }
+          if(!nodesList.some(e => e.id == this.links[i]['tid'])) {
+            nodesList.push({id: this.links[i]['tid'], name: this.links[i]['tid']})
+          }
+        } else if (!this.searchEquals && (this.links[i]['sid'].includes(this.search) || this.links[i]['tid'].includes(this.search))){
+          linksList.push(this.links[i])
+          if(!nodesList.some(e => e.id == this.links[i]['sid'])) {
+            nodesList.push({id: this.links[i]['sid'], name: this.links[i]['sid']})
+          }
+          if(!nodesList.some(e => e.id == this.links[i]['tid'])) {
+            nodesList.push({id: this.links[i]['tid'], name: this.links[i]['tid']})
+          }
+        }
+      }
+
+      this.nodesSearch = nodesList
+      this.linksSearch = linksList
+
+      this.nodesSearchShow = this.nodesSearch;
+      this.linksSearchShow = this.linksSearch;
+      this.netShowed = true;
+    },
+    hideNet() {
+      this.nodesSearchShow = [];
+      this.linksSearchShow = [];
+      this.netShowed = false;
+    },
     getModules() {
       this.axios.get('http://localhost:5000/info').then(response => (
         this.res = response
@@ -48,11 +91,13 @@ export default {
       this.axios.get('http://localhost:5000/nodes').then(response => (
         this.nodes = response['data']
       ));
+      this.hideNet();
     },
     onSearchModule(toSearch) {
       console.log(toSearch);
       
-      this.search = toSearch
+      this.search = toSearch;
+      this.hideNet();
     }
   },
   components: {
@@ -62,17 +107,6 @@ export default {
   computed: {
     moduleList() {
       let moduleListRes = []
-      let nodesList = []
-      let linksList = []
-
-      for (let i in this.links) {
-        console.log(i)
-        if (this.searchEquals && (this.links[i]['sid'] === this.search || this.links[i]['tid'] === this.search)){
-          linksList.push(this.links[i])
-        } else if (!this.searchEquals && (this.links[i]['sid'].includes(this.search) || this.links[i]['tid'].includes(this.search))){
-          linksList.push(this.links[i])
-        }
-      }
 
       for (let i in this.res['data']) {
         if (this.searchEquals && i === this.search){
@@ -81,14 +115,15 @@ export default {
           moduleListRes.push(this.res['data'][i])
         }
       }
-      console.log(linksList);
-      
-      return {modules: moduleListRes, links: linksList, nodes: this.nodes}
+
+      this.hideNet();
+
+      return moduleListRes
     },
     options(){
       return{
         force: 3000,
-        size:{ w:600, h:600},
+        //size:{ w:600, h:600},
         nodeSize: this.nodeSize,
         nodeLabels: true,
         linkLabels:true,
