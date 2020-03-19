@@ -12,7 +12,7 @@
                 </ul>
             </div>
         </div>
-        <div class="col-6 card">
+        <div class="col-6">
             <div class="col-12" v-if="moduleOdoo['depends'].length != 0">
                 <h1>Dependences</h1>
                 <hr>
@@ -31,7 +31,7 @@
                 <hr>
 
                 <div class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Dependences</a>
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Sons</a>
                     <div class="dropdown-menu">
                         <span v-for="dep in moduleOdoo['sons']" class="dropdown-item moduleName" v-on:click="emitSearch(dep)">
                             {{ dep }}

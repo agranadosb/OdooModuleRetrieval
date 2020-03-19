@@ -10,10 +10,12 @@
       <button v-if="!searchEquals" @click="searchEquals = true" class="btn btn-primary">Equals</button>
       <button v-if="searchEquals" @click="searchEquals = false" class="btn btn-primary">Similars</button>
     </div>
-    <div class="container" v-for="data in moduleList" style="margin-bottom:10px;padding:20px;">
+    <div class="container" v-for="data in moduleList.modules" style="margin-bottom:10px;padding:20px;">
       <app-module :moduleOdoo="data" @searchModule="onSearchModule"></app-module>
     </div>
-    <d3-network ref='net' :net-nodes="nodes" :net-links="links" :options="options" />
+    <div class="col-12">
+      <d3-network ref='net' :net-nodes="moduleList.nodes" :net-links="moduleList.links" :options="options" style="width:100%;"/>
+    </div>
   </div>
 </template>
 
@@ -28,22 +30,24 @@ export default {
       res: {},
       search: '',
       searchEquals: false,
-      nodes: [
-            {id: 1, name:'base'},
-            {id: 2, name:'account'}
-        ],
-      links: [
-        {sid: 1, tid: 2, _color: 'red'},
-      ],
+      nodes: [],
+      links: [],
       nodeSize:20,
       canvas:false
     }
   },
   methods: {
     getModules() {
-      this.axios.get('http://localhost:5000/').then(response => (
+      this.axios.get('http://localhost:5000/info').then(response => (
         this.res = response
-      ))
+      ));
+      this.axios.get('http://localhost:5000/links').then(response => (
+        this.links = response['data']
+      ));
+      
+      this.axios.get('http://localhost:5000/nodes').then(response => (
+        this.nodes = response['data']
+      ));
     },
     onSearchModule(toSearch) {
       console.log(toSearch);
@@ -58,14 +62,28 @@ export default {
   computed: {
     moduleList() {
       let moduleListRes = []
-      for (let i in this.res['data']) {
-        if (this.searchEquals && i === this.search)
-          moduleListRes.push(this.res['data'][i])
-        if (!this.searchEquals && i.includes(this.search))
-          moduleListRes.push(this.res['data'][i])
+      let nodesList = []
+      let linksList = []
+
+      for (let i in this.links) {
+        console.log(i)
+        if (this.searchEquals && (this.links[i]['sid'] === this.search || this.links[i]['tid'] === this.search)){
+          linksList.push(this.links[i])
+        } else if (!this.searchEquals && (this.links[i]['sid'].includes(this.search) || this.links[i]['tid'].includes(this.search))){
+          linksList.push(this.links[i])
+        }
       }
 
-      return moduleListRes
+      for (let i in this.res['data']) {
+        if (this.searchEquals && i === this.search){
+          moduleListRes.push(this.res['data'][i])
+        } else if (!this.searchEquals && i.includes(this.search)){
+          moduleListRes.push(this.res['data'][i])
+        }
+      }
+      console.log(linksList);
+      
+      return {modules: moduleListRes, links: linksList, nodes: this.nodes}
     },
     options(){
       return{
@@ -83,9 +101,6 @@ export default {
 
 <style>
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
