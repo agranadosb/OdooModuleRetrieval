@@ -75,6 +75,9 @@ def moduleNet():
     :return:        the rendered template 'home.html'
     """
     x = retriever.Retriever('/opt/oca/oca-12')
+
+    if not request.form:
+        return False
     resp = jsonify(x.getNetModule([i for i in request.form][0]))
     resp.headers['Access-Control-Allow-Origin'] = '*'
     resp.headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, OPTIONS, DELETE'

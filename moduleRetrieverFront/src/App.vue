@@ -24,8 +24,8 @@
         </div>
       </div>
     </div>
-    <div v-if="nodesSearchShow.length != 0" class="col-12 border border-primary" style="margin:10px;">
-      <d3-network ref='net' :net-nodes="nodesSearchShow" :net-links="linksSearchShow" :options="options" style="width:100%;"/>
+    <div v-if="nodes.length != 0" class="col-12 border border-primary" style="margin:10px;">
+      <d3-network ref='net' :net-nodes="nodes" :net-links="links" :options="options" style="width:100%;"/>
     </div>
   </div>
 </template>
@@ -43,10 +43,6 @@ export default {
       searchEquals: false,
       nodes: [],
       links: [],
-      nodesSearch: [],
-      linksSearch: [],
-      nodesSearchShow: [],
-      linksSearchShow: [],
       netShowed: false,
       nodeSize:20,
       canvas:false
@@ -54,52 +50,25 @@ export default {
   },
   methods: {
     showNet() {
-      let nodesList = []
-      let linksList = []
+      this.axios.post('http://localhost:5000/moduleNet', this.search).then(response => {
+        console.log(response)
+        this.nodes = response['data']['nodes']
+        this.links = response['data']['links']
+      });
 
-      for (let i in this.links) {
-        if (this.searchEquals && (this.links[i]['sid'] === this.search || this.links[i]['tid'] === this.search)){
-          linksList.push(this.links[i])
-          if(!nodesList.some(e => e.id == this.links[i]['sid'])) {
-            nodesList.push({id: this.links[i]['sid'], name: this.links[i]['sid']})
-          }
-          if(!nodesList.some(e => e.id == this.links[i]['tid'])) {
-            nodesList.push({id: this.links[i]['tid'], name: this.links[i]['tid']})
-          }
-        } else if (!this.searchEquals && (this.links[i]['sid'].includes(this.search) || this.links[i]['tid'].includes(this.search))){
-          linksList.push(this.links[i])
-          if(!nodesList.some(e => e.id == this.links[i]['sid'])) {
-            nodesList.push({id: this.links[i]['sid'], name: this.links[i]['sid']})
-          }
-          if(!nodesList.some(e => e.id == this.links[i]['tid'])) {
-            nodesList.push({id: this.links[i]['tid'], name: this.links[i]['tid']})
-          }
-        }
-      }
-
-      this.nodesSearch = nodesList
-      this.linksSearch = linksList
-
-      this.nodesSearchShow = this.nodesSearch;
-      this.linksSearchShow = this.linksSearch;
       this.netShowed = true;
     },
     hideNet() {
-      this.nodesSearchShow = [];
-      this.linksSearchShow = [];
+      this.nodes = [];
+      this.links = [];
+
       this.netShowed = false;
     },
     getModules() {
       this.axios.get('http://localhost:5000/info').then(response => (
         this.res = response
       ));
-      this.axios.get('http://localhost:5000/links').then(response => (
-        this.links = response['data']
-      ));
-      
-      this.axios.get('http://localhost:5000/nodes').then(response => (
-        this.nodes = response['data']
-      ));
+
       this.hideNet();
     },
     onSearchModule(toSearch) {
@@ -132,7 +101,6 @@ export default {
     options(){
       return{
         force: 3000,
-        size:{h:1300},
         nodeSize: this.nodeSize,
         nodeLabels: true,
         linkLabels: true,

@@ -223,7 +223,7 @@ class Retriever():
         for i in self.res[module]['sons']:
             queueSons.put(i)
 
-            node = {'id': i, 'name': i, '_color': 'black'}
+            node = {'id': i, 'name': i, '_color': 'orange'}
 
             if node not in resNodes:
                 resNodes.append(node)
