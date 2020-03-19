@@ -12,6 +12,19 @@ class Retriever():
     def __init__(self, directory):
         self.__getInfo(directory)
 
+    def __addNode(self, name):
+        self.nodes.append({
+            'id': name,
+            'name': name
+        })
+    
+    def __addLink(self, nameSrc, nameDst):
+        self.links.append({
+            'sid': nameSrc,
+            'tid': nameDst,
+            '_color': 'black'
+        })
+
     def __getInfo(self, directory):
         """
         Search all the modules for a given directoy and gets information about they.
@@ -42,6 +55,8 @@ class Retriever():
         #   - found:         Indica si el directorio esta en la ruta proporcioanda
         #   - duplicated:   Indica si el módulo esta duplicado
         self.res = {}
+        self.nodes = []
+        self.links = []
         queueDirs = queue.Queue(0)
 
         [queueDirs.put('{}/{}'.format(directory,i)) for i in dirs(directory)]
@@ -100,11 +115,15 @@ class Retriever():
                         'sons': [],
                         'duplicated': False
                     }
+
+                    self.__addNode(tecName)
                 
                 # Se recorren las dependencias
                 for i in dependences:
+                    self.__addLink(tecName, i)
                     # Si no existe en el resultado se añade
                     if i not in self.res:
+                        self.__addNode(i)
                         self.res[i] = {
                             'tecName': i,
                             'name': '',
@@ -139,14 +158,122 @@ class Retriever():
                 print(pr('Duplicated', i['duplicated']), file=fh)
                 print(file=fh)
     
-    def getJSON(self):
+    def getInfo(self):
         return self.res
 
     def getNodes(self):
-        pass
+        return self.nodes
 
     def getLinks(self):
-        pass
+        return self.links
+
+    def __getDependsNetModule(self, module):
+        if module not in self.res:
+            return False
+
+        resLinks = []
+        resNodes = [{'id': module, 'name': module, '_color': 'red'}]
+
+        # Colas para dependencias
+        queueDependences = queue.Queue(0)
+
+        for i in self.res[module]['depends']:
+            queueDependences.put(i)
+
+            node = {'id': i, 'name': i, '_color': 'black'}
+
+            if node not in resNodes:
+                resNodes.append(node)
+            
+            resLinks.append({
+                'sid': module,
+                'tid': i,
+                '_color': 'black'
+            })
+
+        actParent = module
+        while not queueDependences.empty():
+            mod = queueDependences.get()
+            for i in self.res[mod]['depends']:
+                queueDependences.put(i)
+
+                node = {'id': i, 'name': i, '_color': 'black'}
+
+                if node not in resNodes:
+                    resNodes.append(node)
+                
+                resLinks.append({
+                    'sid': mod,
+                    'tid': i,
+                    '_color': 'black'
+                })
+
+        return [resLinks, resNodes]
+
+    def __getSonsNetModule(self, module):
+        if module not in self.res:
+            return False
+
+        resLinks = []
+        resNodes = [{'id': module, 'name': module, '_color': 'red'}]
+
+        # Colas para hijos
+        queueSons = queue.Queue(0)
+
+        for i in self.res[module]['sons']:
+            queueSons.put(i)
+
+            node = {'id': i, 'name': i, '_color': 'black'}
+
+            if node not in resNodes:
+                resNodes.append(node)
+            
+            resLinks.append({
+                'sid': module,
+                'tid': i,
+                '_color': 'black'
+            })
+
+        actParent = module
+        while not queueSons.empty():
+            mod = queueSons.get()
+            for i in self.res[mod]['sons']:
+                queueSons.put(i)
+
+                node = {'id': i, 'name': i, '_color': 'black'}
+
+                if node not in resNodes:
+                    resNodes.append(node)
+                
+                resLinks.append({
+                    'sid': mod,
+                    'tid': i,
+                    '_color': 'black'
+                })
+
+        return [resLinks, resNodes]
+
+    def getNetModule(self, module):
+        netDep = self.__getDependsNetModule(module)
+
+        if not netDep:
+            return False
+        
+        resLinks, resNodes = netDep
+
+        netSon = self.__getSonsNetModule(module)
+
+        resLinks += netSon[0]
+        resNodes += netSon[1]
+
+        resLinks = [dict(t) for t in {tuple(d.items()) for d in resLinks}]
+        resNodes = [dict(t) for t in {tuple(d.items()) for d in resNodes}]
+
+        return {
+            'links': resLinks,
+            'nodes': resNodes
+        }
+        
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Get modules of info for a given folder')

@@ -12,8 +12,8 @@
       <button v-if="!netShowed" @click="showNet" class="btn btn-primary">Show Net</button>
       <button v-if="netShowed" @click="hideNet" class="btn btn-primary">Hide Net</button>
     </div>
-    <div id="accordion">
-      <div class="container" v-for="data in moduleList">
+    <div id="accordion" style="margin-bottom:10px;">
+      <div class="" v-for="data in moduleList">
         <div class="card-header" :id="'heading' + data['tecName']">
           <button class="btn collapsed" data-toggle="collapse" :data-target="'#collapse' + data['tecName']" aria-expanded="true" :aria-controls="'collapse' + data['tecName']" style="width:100%;">
             {{ data['tecName'] }}
@@ -24,7 +24,7 @@
         </div>
       </div>
     </div>
-    <div class="col-12">
+    <div v-if="nodesSearchShow.length != 0" class="col-12 border border-primary" style="margin:10px;">
       <d3-network ref='net' :net-nodes="nodesSearchShow" :net-links="linksSearchShow" :options="options" style="width:100%;"/>
     </div>
   </div>
@@ -132,10 +132,10 @@ export default {
     options(){
       return{
         force: 3000,
-        //size:{ w:600, h:600},
+        size:{h:1300},
         nodeSize: this.nodeSize,
         nodeLabels: true,
-        linkLabels:true,
+        linkLabels: true,
         canvas: this.canvas
       }
     }

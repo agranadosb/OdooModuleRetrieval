@@ -4,11 +4,31 @@
             <h1>Module Info</h1>
             <hr>
             <div>
-                <ul class="list-group">
-                    <li class="list-group-item list-group-item-dark">Tecnical Name: <b>{{ moduleOdoo['tecName'] }}</b></li>
-                    <li class="list-group-item list-group-item-dark">Name: <b>{{ moduleOdoo['name'] }}</b></li>
-                    <li class="list-group-item list-group-item-dark">Path: <b>{{ moduleOdoo['path'] }}</b></li>
-                    <li class="list-group-item list-group-item-dark">Found: <b>{{ moduleOdoo['found'] }}</b></li>
+                <ul class="list-group text-left">
+                    <li class="list-group-item list-group-item-dark">
+                        <div class="row">
+                            <div class="col-4">Tecnical Name:</div>
+                            <div class="col-8"><b>{{ moduleOdoo['tecName'] }}</b></div>
+                        </div>
+                    </li>
+                    <li class="list-group-item list-group-item-dark">
+                        <div class="row">
+                            <div class="col-4">Name:</div>
+                            <div class="col-8"><b>{{ moduleOdoo['name'] }}</b></div>
+                        </div>
+                    </li>
+                    <li class="list-group-item list-group-item-dark">
+                        <div class="row">
+                            <div class="col-4">Path:</div>
+                            <div class="col-8"><b>{{ moduleOdoo['path'] }}</b></div>
+                        </div>
+                    </li>
+                    <li class="list-group-item list-group-item-dark">
+                        <div class="row">
+                            <div class="col-4">Found:</div>
+                            <div class="col-8"><b>{{ moduleOdoo['found'] }}</b></div>
+                        </div>
+                    </li>
                 </ul>
             </div>
         </div>
