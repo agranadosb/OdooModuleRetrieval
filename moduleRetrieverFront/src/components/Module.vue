@@ -8,7 +8,7 @@
                     <li class="list-group-item list-group-item-dark">
                         <div class="row">
                             <div class="col-4">Tecnical Name:</div>
-                            <div class="col-8"><b>{{ moduleOdoo['tecName'] }}</b></div>
+                            <div class="col-8"><b v-on:click="emitClickName(moduleOdoo['tecName'])" class="moduleName">{{ moduleOdoo['tecName'] }}</b></div>
                         </div>
                     </li>
                     <li class="list-group-item list-group-item-dark">
@@ -65,12 +65,14 @@
 
 <script>
 export default {
-  props: ['moduleOdoo'],
-  methods: {
-      emitSearch: function(name) {
-          console.log(name);
-          this.$emit('searchModule', name);
-      }
+    props: ['moduleOdoo'],
+    methods: {
+        emitSearch: function(name) {
+            this.$emit('searchModule', name);
+        },
+        emitClickName: function(name) {
+            this.$emit('nameClicked', name);
+        }
   }
 }
 </script>

@@ -20,11 +20,34 @@
           </button>
         </div>
         <div :id="'collapse' + data['tecName']" class="collapse" :aria-labelledby="'heading' + data['tecName']" data-parent="#accordion">
-          <app-module :moduleOdoo="data" @searchModule="onSearchModule"></app-module>
+          <app-module :moduleOdoo="data" @searchModule="onSearchModule" @nameClicked="onNameClicked"></app-module>
         </div>
       </div>
     </div>
-    <div v-if="nodes.length != 0" class="col-12 border border-primary" style="margin:10px;">
+    <div v-if="nodes.length != 0" class="col-12" style="margin:10px;">
+      <div class="row">
+        <div class="col-6 overflow-auto">
+          <h1>Sons</h1>
+          <vue2-org-tree
+            :data="treeDataSons"
+            :horizontal="true"
+            :collapsable="true"
+            :renderContent="renderContent"
+            @on-expand="onExpand"
+            @on-node-click="onNodeClick"/>
+        </div>
+        <div class="col-6 overflow-auto">
+          <h1>Depends</h1>
+          <vue2-org-tree
+            :data="treeDataDepends"
+            :horizontal="true"
+            :collapsable="true"
+            :renderContent="renderContent"
+            @on-expand="onExpand"
+            @on-node-click="onNodeClick"/>
+        </div>
+      </div>
+      <hr>
       <d3-network ref='net' :net-nodes="nodes" :net-links="links" :options="options" style="width:100%;"/>
     </div>
   </div>
@@ -33,6 +56,8 @@
 <script>
 import Module from './components/Module.vue';
 import D3Network from 'vue-d3-network';
+import Vue2OrgTree from 'vue2-org-tree';
+
 
 export default {
   name: 'app',
@@ -44,19 +69,26 @@ export default {
       nodes: [],
       links: [],
       netShowed: false,
-      nodeSize:20,
-      canvas:false
+      nodeSize: 20,
+      canvas: false,
+      treeDataSons: {},
+      treeDataDepends: {},
     }
   },
   methods: {
     showNet() {
       this.axios.post('http://localhost:5000/moduleNet', this.search).then(response => {
-        console.log(response)
         this.nodes = response['data']['nodes']
         this.links = response['data']['links']
       });
 
+      this.axios.post('http://localhost:5000/moduleTree', this.search).then(response => {
+        this.treeDataSons = response['data']['sons']
+        this.treeDataDepends = response['data']['depends']
+      });
+
       this.netShowed = true;
+      this.searchEquals = true;
     },
     hideNet() {
       this.nodes = [];
@@ -69,18 +101,36 @@ export default {
         this.res = response
       ));
 
+      this.search = '';
+      this.searchEquals = false;
       this.hideNet();
     },
     onSearchModule(toSearch) {
-      console.log(toSearch);
-      
       this.search = toSearch;
       this.hideNet();
-    }
+    },
+    onNameClicked(name) {
+      this.search = name;
+      this.searchEquals = true;
+      this.hideNet();
+    },
+    renderContent: function(h, data) {
+      return data.label
+    },
+    onExpand: function(e, node) {
+      node.expand = !node.expand
+      // Para cuando se actualiza un hijo
+      this.$forceUpdate();
+    },
+    onNodeClick: function(e, data) {
+      //console.log(this.treeData)
+      //alert(data.label)
+    }   
   },
   components: {
     appModule: Module,
-    D3Network
+    D3Network,
+    Vue2OrgTree
   },
   computed: {
     moduleList() {
